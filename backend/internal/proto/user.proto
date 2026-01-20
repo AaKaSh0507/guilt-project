@@ -6,8 +6,11 @@ option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 
+// UserService manages user accounts
 service UserService {
+  // CreateUser creates a new user account
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // GetUser retrieves a user by ID
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
 }
 

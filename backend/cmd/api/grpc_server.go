@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func startGRPCServer(register func(*grpc.Server)) {
+func StartGRPCServer(register func(*grpc.Server)) {
 	l, err := net.Listen("tcp", ":9090")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

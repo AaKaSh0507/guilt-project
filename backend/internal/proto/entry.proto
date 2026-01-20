@@ -6,8 +6,11 @@ option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 
+// EntryService manages guilt entries
 service EntryService {
+  // CreateEntry creates a new guilt entry
   rpc CreateEntry(CreateEntryRequest) returns (CreateEntryResponse);
+  // ListEntries lists all guilt entries for a session
   rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse);
 }
 

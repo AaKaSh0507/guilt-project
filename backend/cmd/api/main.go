@@ -3,32 +3,32 @@ package main
 import (
 	"context"
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
-	"google.golang.org/grpc"
 
 	"guiltmachine/internal/db"
+	v1 "guiltmachine/internal/proto/gen"
+	reposqlc "guiltmachine/internal/repository/sqlc"
+	"guiltmachine/internal/services"
+	grpchandlers "guiltmachine/internal/transport/grpc"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
-	godotenv.Load()
 	ctx := context.Background()
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		log.Fatal("DATABASE_URL not set")
-	}
+	// init DB + queries
+	database := db.MustDB(ctx, "postgres://localhost/guilt")
+	repos := reposqlc.New(database)
 
-	db.MustDB(ctx, dsn)
+	// service
+	userService := services.NewUserService(repos.Users)
 
-	// we will inject repos + services here later
+	// handler
+	userHandler := grpchandlers.NewUserHandler(userService)
 
-	go func() {
-		startGRPCServer(func(s *grpc.Server) {
-			// Register services here
-		})
-	}()
+	StartGRPCServer(func(s *grpc.Server) {
+		v1.RegisterUserServiceServer(s, userHandler)
+	})
 
-	select {} // block forever for now
+	log.Println("api ready")
 }
