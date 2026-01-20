@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package guiltmachine.v1;
+
+option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+service SessionService {
+  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+}
+
+message StartSessionRequest {
+  string user_id = 1;
+  string notes = 2; // optional text, empty means none
+}
+
+message StartSessionResponse {
+  string session_id = 1;
+  google.protobuf.Timestamp started_at = 2;
+  string notes = 3;
+}
+
+message EndSessionRequest {
+  string session_id = 1;
+}
+
+message EndSessionResponse {
+  string session_id = 1;
+  google.protobuf.Timestamp started_at = 2;
+  google.protobuf.Timestamp ended_at = 3;
+  string notes = 4;
+}
+
+message ListSessionsRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListSessionsResponse {
+  repeated SessionItem sessions = 1;
+}
+
+message SessionItem {
+  string session_id = 1;
+  google.protobuf.Timestamp started_at = 2;
+  google.protobuf.Timestamp ended_at = 3;
+  string notes = 4;
+}

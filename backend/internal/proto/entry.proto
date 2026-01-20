@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package guiltmachine.v1;
+
+option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+service EntryService {
+  rpc CreateEntry(CreateEntryRequest) returns (CreateEntryResponse);
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse);
+}
+
+message CreateEntryRequest {
+  string session_id = 1;
+  string text = 2;
+  int32 level = 3; // 0-10
+}
+
+message CreateEntryResponse {
+  string entry_id = 1;
+  string session_id = 2;
+  string text = 3;
+  int32 level = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message ListEntriesRequest {
+  string session_id = 1;
+}
+
+message ListEntriesResponse {
+  repeated EntryItem entries = 1;
+}
+
+message EntryItem {
+  string entry_id = 1;
+  string text = 2;
+  int32 level = 3;
+  google.protobuf.Timestamp created_at = 4;
+}

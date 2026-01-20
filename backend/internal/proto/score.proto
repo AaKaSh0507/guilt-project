@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package guiltmachine.v1;
+
+option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+service ScoreService {
+  rpc CreateScore(CreateScoreRequest) returns (CreateScoreResponse);
+  rpc GetScore(GetScoreRequest) returns (GetScoreResponse);
+}
+
+message CreateScoreRequest {
+  string session_id = 1;
+  int32 score = 2; // 0-100
+  string meta_json = 3; // opaque JSON
+}
+
+message CreateScoreResponse {
+  string score_id = 1;
+  string session_id = 2;
+  int32 score = 3;
+  string meta_json = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message GetScoreRequest {
+  string session_id = 1;
+}
+
+message GetScoreResponse {
+  string score_id = 1;
+  string session_id = 2;
+  int32 score = 3;
+  string meta_json = 4;
+  google.protobuf.Timestamp created_at = 5;
+}

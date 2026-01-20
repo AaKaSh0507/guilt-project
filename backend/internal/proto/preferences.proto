@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package guiltmachine.v1;
+
+option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
+
+service PreferencesService {
+  rpc UpsertPreferences(UpsertPreferencesRequest) returns (UpsertPreferencesResponse);
+  rpc GetPreferences(GetPreferencesRequest) returns (GetPreferencesResponse);
+}
+
+message UpsertPreferencesRequest {
+  string user_id = 1;
+  string theme = 2; // optional, empty means none
+  bool notifications = 3;
+  string metadata_json = 4;
+}
+
+message UpsertPreferencesResponse {
+  string user_id = 1;
+  string theme = 2;
+  bool notifications = 3;
+  string metadata_json = 4;
+}
+
+message GetPreferencesRequest {
+  string user_id = 1;
+}
+
+message GetPreferencesResponse {
+  string user_id = 1;
+  string theme = 2;
+  bool notifications = 3;
+  string metadata_json = 4;
+}
