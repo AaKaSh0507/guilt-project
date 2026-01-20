@@ -1,0 +1,19 @@
+services:
+  postgres:
+    platform: linux/arm64
+    image: postgres:15
+    container_name: guilt_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: guilt
+      POSTGRES_PASSWORD: guiltpass
+      POSTGRES_DB: guiltmachine
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - guilt_pgdata:/var/lib/postgresql/data
+    command: ["postgres", "-c", "listen_addresses=*", "-c", "password_encryption=scram-sha-256"]
+
+volumes:
+  guilt_pgdata:
