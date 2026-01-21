@@ -5,7 +5,7 @@ BIN = ./bin/$(APP)
 MAIN = ./cmd/api
 DB_URL = postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable
 
-.PHONY: run build db-up db-down db-wait migrate-up app-up stop clean logs help redis-up redis-down redis-wait services logs-all
+.PHONY: run build db-up db-down db-wait migrate-up app-up stop clean logs help redis-up redis-down redis-wait services logs-all test test-up test-down test-wait test-db test-db-drop
 
 run: db-up redis-up db-wait migrate-up build app-up
 
@@ -64,6 +64,30 @@ logs:
 
 logs-all:
 	$(DC) logs -f
+
+test:
+	$(MAKE) -C test test
+
+test-up:
+	$(MAKE) -C test test-up
+
+test-down:
+	$(MAKE) -C test test-down
+
+test-wait:
+	$(MAKE) -C test test-wait
+
+test-db:
+	$(MAKE) -C test test-db
+
+test-db-drop:
+	@echo "  make test        - Run full test suite with infrastructure"
+	@echo "  make test-up     - Start test infrastructure"
+	@echo "  make test-down   - Stop test infrastructure"
+	@echo "  make test-wait   - Wait for test postgres"
+	@echo "  make test-db     - Create test database and migrations"
+	@echo "  make test-db-drop - Drop test database"
+	$(MAKE) -C test test-db-drop
 
 .PHONY: help
 help:

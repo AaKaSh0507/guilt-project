@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 
+	cacheDomain "guiltmachine/internal/cache/domain"
+	cacheRedis "guiltmachine/internal/cache/redis"
 	"guiltmachine/internal/db"
+	"guiltmachine/internal/ml"
 	v1 "guiltmachine/internal/proto/gen"
 	sessionv1 "guiltmachine/internal/proto/gen/v1"
 	reposqlc "guiltmachine/internal/repository/sqlc"
@@ -21,20 +24,41 @@ func main() {
 	database := db.MustDB(ctx, "postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable")
 	repos := reposqlc.New(database)
 
+	// init Redis cache
+	cfg, err := cacheRedis.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load redis config: %v", err)
+	}
+
+	redisClient := cacheRedis.NewRedisClient(cfg)
+	if err := cacheRedis.Ping(ctx, redisClient); err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+
+	redisCache := cacheRedis.NewRedisCache(redisClient)
+
+	sessionCache := cacheDomain.NewSessionCache(redisCache)
+	prefsCache := cacheDomain.NewPreferencesCache(redisCache)
+
+	// init ML layer
+	infer := ml.NewInferenceStub()
+	orchestrator := ml.NewHybridOrchestrator(infer)
+
 	// service
 	userService := services.NewUserService(repos.Users)
 	userHandler := grpchandlers.NewUserHandler(userService)
 
-	sessionService := services.NewSessionService(repos.Sessions)
+	sessionService := services.NewSessionService(repos.Sessions, sessionCache)
 	sessionHandler := grpchandlers.NewSessionHandler(sessionService)
 
-	entryService := services.NewEntryService(repos.Entries)
+	preferencesService := services.NewPreferencesService(repos.Preferences, prefsCache)
+
+	entryService := services.NewEntryServiceWithHybrid(repos.Entries, repos.Scores, orchestrator, preferencesService)
 	entryHandler := grpchandlers.NewEntryHandler(entryService)
 
 	scoreService := services.NewScoreService(repos.Scores)
 	scoreHandler := grpchandlers.NewScoreHandler(scoreService)
 
-	preferencesService := services.NewPreferencesService(repos.Preferences)
 	preferencesHandler := grpchandlers.NewPreferencesHandler(preferencesService)
 
 	StartGRPCServer(func(s *grpc.Server) {

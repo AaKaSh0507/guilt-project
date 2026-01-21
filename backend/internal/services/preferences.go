@@ -5,17 +5,20 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/google/uuid"
+	cacheDomain "guiltmachine/internal/cache/domain"
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type PreferencesService struct {
-	repo repository.PreferencesRepository
+	repo  repository.PreferencesRepository
+	cache *cacheDomain.PreferencesCache
 }
 
-func NewPreferencesService(r repository.PreferencesRepository) *PreferencesService {
-	return &PreferencesService{repo: r}
+func NewPreferencesService(r repository.PreferencesRepository, c *cacheDomain.PreferencesCache) *PreferencesService {
+	return &PreferencesService{repo: r, cache: c}
 }
 
 func (s *PreferencesService) UpsertPreferences(ctx context.Context, userID string, theme *string, notifications bool, metadata string) (sqlc.UserPreference, error) {

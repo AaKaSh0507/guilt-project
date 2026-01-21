@@ -8,6 +8,7 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -27,6 +28,7 @@ RETURNING
     session_id,
     entry_text,
     guilt_level,
+    roast_text,
     created_at,
     updated_at
 `
@@ -37,14 +39,25 @@ type CreateEntryParams struct {
 	GuiltLevel sql.NullInt32
 }
 
-func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (GuiltEntry, error) {
+type CreateEntryRow struct {
+	ID         uuid.UUID
+	SessionID  uuid.UUID
+	EntryText  string
+	GuiltLevel sql.NullInt32
+	RoastText  sql.NullString
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (CreateEntryRow, error) {
 	row := q.db.QueryRowContext(ctx, createEntry, arg.SessionID, arg.EntryText, arg.GuiltLevel)
-	var i GuiltEntry
+	var i CreateEntryRow
 	err := row.Scan(
 		&i.ID,
 		&i.SessionID,
 		&i.EntryText,
 		&i.GuiltLevel,
+		&i.RoastText,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -57,6 +70,7 @@ SELECT
     session_id,
     entry_text,
     guilt_level,
+    roast_text,
     created_at,
     updated_at
 FROM guilt_entries
@@ -64,20 +78,31 @@ WHERE session_id = $1
 ORDER BY created_at ASC
 `
 
-func (q *Queries) ListEntriesBySession(ctx context.Context, sessionID uuid.UUID) ([]GuiltEntry, error) {
+type ListEntriesBySessionRow struct {
+	ID         uuid.UUID
+	SessionID  uuid.UUID
+	EntryText  string
+	GuiltLevel sql.NullInt32
+	RoastText  sql.NullString
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) ListEntriesBySession(ctx context.Context, sessionID uuid.UUID) ([]ListEntriesBySessionRow, error) {
 	rows, err := q.db.QueryContext(ctx, listEntriesBySession, sessionID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GuiltEntry
+	var items []ListEntriesBySessionRow
 	for rows.Next() {
-		var i GuiltEntry
+		var i ListEntriesBySessionRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.SessionID,
 			&i.EntryText,
 			&i.GuiltLevel,
+			&i.RoastText,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -92,4 +117,18 @@ func (q *Queries) ListEntriesBySession(ctx context.Context, sessionID uuid.UUID)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateRoast = `-- name: UpdateRoast :exec
+UPDATE guilt_entries SET roast_text = $2 WHERE id = $1
+`
+
+type UpdateRoastParams struct {
+	ID        uuid.UUID
+	RoastText sql.NullString
+}
+
+func (q *Queries) UpdateRoast(ctx context.Context, arg UpdateRoastParams) error {
+	_, err := q.db.ExecContext(ctx, updateRoast, arg.ID, arg.RoastText)
+	return err
 }

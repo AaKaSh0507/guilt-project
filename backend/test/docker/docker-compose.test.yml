@@ -1,0 +1,22 @@
+services:
+  postgres_test:
+    image: postgres:15
+    container_name: guilt_postgres_test
+    environment:
+      POSTGRES_USER: guilt
+      POSTGRES_PASSWORD: guiltpass
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "guilt"]
+      interval: 1s
+      timeout: 3s
+      retries: 20
+
+  redis_test:
+    image: redis:7-alpine
+    container_name: guilt_redis_test
+    command: ["redis-server", "--appendonly", "no"]
+    ports:
+      - "6380:6379"

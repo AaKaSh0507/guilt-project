@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package ml;
+
+option go_package = "guiltmachine/internal/proto/gen/ml;ml";
+
+enum Persona {
+  PERSONA_NEUTRAL = 0;
+  PERSONA_ROAST = 1;
+  PERSONA_COACH = 2;
+  PERSONA_CHILL = 3;
+}
+
+message RoastRequest {
+  string entry_text = 1;
+  string user_id = 2;
+  int32 humor_intensity = 3;
+  Persona persona = 4;
+  repeated string history = 5;
+}
+
+message RoastResponse {
+  double guilt_score = 1;
+  string roast_text = 2;
+  repeated string tags = 3;
+  repeated string safety_flags = 4;
+}
