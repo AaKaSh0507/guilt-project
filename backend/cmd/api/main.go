@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	cacheDomain "guiltmachine/internal/cache/domain"
+	cacheRedis "guiltmachine/internal/cache/redis"
 	"guiltmachine/internal/db"
 	v1 "guiltmachine/internal/proto/gen"
 	sessionv1 "guiltmachine/internal/proto/gen/v1"
@@ -21,11 +23,27 @@ func main() {
 	database := db.MustDB(ctx, "postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable")
 	repos := reposqlc.New(database)
 
+	// init Redis cache
+	cfg, err := cacheRedis.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load redis config: %v", err)
+	}
+
+	redisClient := cacheRedis.NewRedisClient(cfg)
+	if err := cacheRedis.Ping(ctx, redisClient); err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+
+	redisCache := cacheRedis.NewRedisCache(redisClient)
+
+	sessionCache := cacheDomain.NewSessionCache(redisCache)
+	prefsCache := cacheDomain.NewPreferencesCache(redisCache)
+
 	// service
 	userService := services.NewUserService(repos.Users)
 	userHandler := grpchandlers.NewUserHandler(userService)
 
-	sessionService := services.NewSessionService(repos.Sessions)
+	sessionService := services.NewSessionService(repos.Sessions, sessionCache)
 	sessionHandler := grpchandlers.NewSessionHandler(sessionService)
 
 	entryService := services.NewEntryService(repos.Entries)
@@ -34,7 +52,7 @@ func main() {
 	scoreService := services.NewScoreService(repos.Scores)
 	scoreHandler := grpchandlers.NewScoreHandler(scoreService)
 
-	preferencesService := services.NewPreferencesService(repos.Preferences)
+	preferencesService := services.NewPreferencesService(repos.Preferences, prefsCache)
 	preferencesHandler := grpchandlers.NewPreferencesHandler(preferencesService)
 
 	StartGRPCServer(func(s *grpc.Server) {

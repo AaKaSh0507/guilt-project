@@ -4,17 +4,20 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
+	cacheDomain "guiltmachine/internal/cache/domain"
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type SessionService struct {
-	repo repository.SessionsRepository
+	repo  repository.SessionsRepository
+	cache *cacheDomain.SessionCache
 }
 
-func NewSessionService(r repository.SessionsRepository) *SessionService {
-	return &SessionService{repo: r}
+func NewSessionService(r repository.SessionsRepository, c *cacheDomain.SessionCache) *SessionService {
+	return &SessionService{repo: r, cache: c}
 }
 
 func (s *SessionService) CreateSession(ctx context.Context, userID string, notes *string) (sqlc.GuiltSession, error) {
