@@ -32,3 +32,19 @@ ORDER BY created_at ASC;
 
 -- name: UpdateRoast :exec
 UPDATE guilt_entries SET roast_text = $2 WHERE id = $1;
+
+-- name: UpdateEntryStatus :exec
+UPDATE guilt_entries SET status = $2 WHERE id = $1;
+
+-- name: GetEntry :one
+SELECT
+    id,
+    session_id,
+    entry_text,
+    guilt_level,
+    roast_text,
+    status,
+    created_at,
+    updated_at
+FROM guilt_entries
+WHERE id = $1;
