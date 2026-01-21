@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+
+	sqlc "guiltmachine/internal/db/sqlc"
 
 	"github.com/google/uuid"
-	sqlc "guiltmachine/internal/db/sqlc"
 )
 
 type UsersRepository interface {
@@ -23,6 +25,7 @@ type SessionsRepository interface {
 type EntriesRepository interface {
 	CreateEntry(ctx context.Context, sessionID uuid.UUID, text string, level int32) (sqlc.GuiltEntry, error)
 	ListEntriesBySession(ctx context.Context, sessionID uuid.UUID) ([]sqlc.GuiltEntry, error)
+	UpdateRoast(ctx context.Context, entryID uuid.UUID, roastText sql.NullString) error
 }
 
 type ScoresRepository interface {

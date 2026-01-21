@@ -95,11 +95,47 @@ func (r *entriesRepo) CreateEntry(ctx context.Context, sessionID uuid.UUID, text
 		EntryText:  text,
 		GuiltLevel: sql.NullInt32{Int32: level, Valid: true},
 	}
-	return r.q.CreateEntry(ctx, params)
+	row, err := r.q.CreateEntry(ctx, params)
+	if err != nil {
+		return sqlc.GuiltEntry{}, err
+	}
+	return sqlc.GuiltEntry{
+		ID:         row.ID,
+		SessionID:  row.SessionID,
+		EntryText:  row.EntryText,
+		GuiltLevel: row.GuiltLevel,
+		RoastText:  row.RoastText,
+		CreatedAt:  row.CreatedAt,
+		UpdatedAt:  row.UpdatedAt,
+	}, nil
 }
 
 func (r *entriesRepo) ListEntriesBySession(ctx context.Context, sessionID uuid.UUID) ([]sqlc.GuiltEntry, error) {
-	return r.q.ListEntriesBySession(ctx, sessionID)
+	rows, err := r.q.ListEntriesBySession(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]sqlc.GuiltEntry, len(rows))
+	for i, row := range rows {
+		entries[i] = sqlc.GuiltEntry{
+			ID:         row.ID,
+			SessionID:  row.SessionID,
+			EntryText:  row.EntryText,
+			GuiltLevel: row.GuiltLevel,
+			RoastText:  row.RoastText,
+			CreatedAt:  row.CreatedAt,
+			UpdatedAt:  row.UpdatedAt,
+		}
+	}
+	return entries, nil
+}
+
+func (r *entriesRepo) UpdateRoast(ctx context.Context, entryID uuid.UUID, roastText sql.NullString) error {
+	params := sqlc.UpdateRoastParams{
+		ID:        entryID,
+		RoastText: roastText,
+	}
+	return r.q.UpdateRoast(ctx, params)
 }
 
 // SCORES

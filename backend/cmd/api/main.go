@@ -42,7 +42,7 @@ func main() {
 
 	// init ML layer
 	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
+	orchestrator := ml.NewHybridOrchestrator(infer)
 
 	// service
 	userService := services.NewUserService(repos.Users)
@@ -51,13 +51,14 @@ func main() {
 	sessionService := services.NewSessionService(repos.Sessions, sessionCache)
 	sessionHandler := grpchandlers.NewSessionHandler(sessionService)
 
-	entryService := services.NewEntryServiceWithML(repos.Entries, repos.Scores, mlService)
+	preferencesService := services.NewPreferencesService(repos.Preferences, prefsCache)
+
+	entryService := services.NewEntryServiceWithHybrid(repos.Entries, repos.Scores, orchestrator, preferencesService)
 	entryHandler := grpchandlers.NewEntryHandler(entryService)
 
 	scoreService := services.NewScoreService(repos.Scores)
 	scoreHandler := grpchandlers.NewScoreHandler(scoreService)
 
-	preferencesService := services.NewPreferencesService(repos.Preferences, prefsCache)
 	preferencesHandler := grpchandlers.NewPreferencesHandler(preferencesService)
 
 	StartGRPCServer(func(s *grpc.Server) {

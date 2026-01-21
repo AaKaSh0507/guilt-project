@@ -33,3 +33,12 @@ func (s *InferenceStub) Roast(ctx context.Context, req *gen.RoastRequest) (*gen.
 		SafetyFlags: []string{},
 	}, nil
 }
+
+// Generate implements the LLM interface for HybridOrchestrator
+func (s *InferenceStub) Generate(ctx context.Context, in HybridInput) (string, error) {
+	roast := "Mild roast: you really wrote that?"
+	if in.Intensity > 5 {
+		roast = "Aggressive roast: bro what is this?"
+	}
+	return roast, nil
+}

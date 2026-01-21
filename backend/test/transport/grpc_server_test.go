@@ -76,7 +76,7 @@ func TestTransportLayerSetup(t *testing.T) {
 
 	// setup ml service
 	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
+	orchestrator := ml.NewHybridOrchestrator(infer)
 
 	// setup redis caches
 	sessionCache := openSessionCache(t)
@@ -86,7 +86,7 @@ func TestTransportLayerSetup(t *testing.T) {
 	userService := svcs.NewUserService(repo.Users)
 	sessionService := svcs.NewSessionService(repo.Sessions, sessionCache)
 	prefsService := svcs.NewPreferencesService(repo.Preferences, preferencesCache)
-	entryService := svcs.NewEntryServiceWithML(repo.Entries, repo.Scores, mlService)
+	entryService := svcs.NewEntryServiceWithHybrid(repo.Entries, repo.Scores, orchestrator, prefsService)
 	scoreService := svcs.NewScoreService(repo.Scores)
 
 	// Verify all handlers can be created

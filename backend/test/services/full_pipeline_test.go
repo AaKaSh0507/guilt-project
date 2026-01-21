@@ -73,7 +73,7 @@ func TestFullPipeline(t *testing.T) {
 
 	// Create ML service
 	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
+	orchestrator := ml.NewHybridOrchestrator(infer)
 
 	// Get caches
 	prefsCache := openPreferencesCache(t)
@@ -83,7 +83,7 @@ func TestFullPipeline(t *testing.T) {
 	users := svcs.NewUserService(repo.Users)
 	sessions := svcs.NewSessionService(repo.Sessions, sessCache)
 	prefs := svcs.NewPreferencesService(repo.Preferences, prefsCache)
-	entries := svcs.NewEntryServiceWithML(repo.Entries, repo.Scores, mlService)
+	entries := svcs.NewEntryServiceWithHybrid(repo.Entries, repo.Scores, orchestrator, prefs)
 	scores := svcs.NewScoreService(repo.Scores)
 
 	// Step 1: Create user
@@ -154,12 +154,14 @@ func TestFullPipelineMultipleEntries(t *testing.T) {
 
 	repo := sqlcrepo.New(db)
 	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
+	orchestrator := ml.NewHybridOrchestrator(infer)
 	sessCache := openSessionCache(t)
+	prefsCache := openPreferencesCache(t)
 
 	users := svcs.NewUserService(repo.Users)
 	sessions := svcs.NewSessionService(repo.Sessions, sessCache)
-	entries := svcs.NewEntryServiceWithML(repo.Entries, repo.Scores, mlService)
+	prefs := svcs.NewPreferencesService(repo.Preferences, prefsCache)
+	entries := svcs.NewEntryServiceWithHybrid(repo.Entries, repo.Scores, orchestrator, prefs)
 
 	// Create user and session
 	u, _ := users.CreateUser(ctx, "multi@test.com", "password123")
@@ -198,12 +200,14 @@ func TestFullPipelineMLIntegration(t *testing.T) {
 
 	repo := sqlcrepo.New(db)
 	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
+	orchestrator := ml.NewHybridOrchestrator(infer)
 	sessCache := openSessionCache(t)
+	prefsCache := openPreferencesCache(t)
 
 	users := svcs.NewUserService(repo.Users)
 	sessions := svcs.NewSessionService(repo.Sessions, sessCache)
-	entries := svcs.NewEntryServiceWithML(repo.Entries, repo.Scores, mlService)
+	prefs := svcs.NewPreferencesService(repo.Preferences, prefsCache)
+	entries := svcs.NewEntryServiceWithHybrid(repo.Entries, repo.Scores, orchestrator, prefs)
 	scores := svcs.NewScoreService(repo.Scores)
 
 	// Create user and session

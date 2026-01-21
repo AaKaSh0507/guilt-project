@@ -2,33 +2,33 @@ package services
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"errors"
 
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/ml"
-	gen "guiltmachine/internal/proto/gen/ml"
 	"guiltmachine/internal/repository"
 
 	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
 )
 
 type EntryService struct {
-	repo       repository.EntriesRepository
-	scoresRepo repository.ScoresRepository
-	mlService  *ml.MLService
+	repo         repository.EntriesRepository
+	scoresRepo   repository.ScoresRepository
+	orchestrator *ml.HybridOrchestrator
+	prefsService *PreferencesService
 }
 
 func NewEntryService(r repository.EntriesRepository) *EntryService {
 	return &EntryService{repo: r}
 }
 
-func NewEntryServiceWithML(r repository.EntriesRepository, scoresRepo repository.ScoresRepository, mlService *ml.MLService) *EntryService {
+func NewEntryServiceWithHybrid(r repository.EntriesRepository, scoresRepo repository.ScoresRepository, orchestrator *ml.HybridOrchestrator, prefsService *PreferencesService) *EntryService {
 	return &EntryService{
-		repo:       r,
-		scoresRepo: scoresRepo,
-		mlService:  mlService,
+		repo:         r,
+		scoresRepo:   scoresRepo,
+		orchestrator: orchestrator,
+		prefsService: prefsService,
 	}
 }
 
@@ -43,32 +43,44 @@ func (s *EntryService) CreateEntry(ctx context.Context, sessionID string, text s
 		return sqlc.GuiltEntry{}, err
 	}
 
-	// Process through ML layer if available
-	if s.mlService != nil {
-		resp, err := s.mlService.Roast(ctx, &gen.RoastRequest{
-			EntryText:      text,
-			UserId:         sid.String(),
-			HumorIntensity: int32(5), // default intensity
-			History:        []string{},
+	// Process through hybrid ML orchestrator if available
+	if s.orchestrator != nil {
+		// Default intensity and persona
+		intensity := 5
+		persona := ml.PersonaRoast
+
+		// Try to get user preferences if available
+		if s.prefsService != nil {
+			// Get the user_id from the session
+			// Note: This is a simplified approach; you may need to fetch user_id from session first
+			// For now, using default values
+		}
+
+		// Run hybrid orchestrator
+		output, err := s.orchestrator.Run(ctx, ml.HybridInput{
+			Text:      text,
+			UserID:    sid.String(),
+			Intensity: intensity,
+			Persona:   persona,
+			History:   []string{},
 		})
 		if err != nil {
 			// Log error but don't fail entry creation
-			// In production, this should be logged properly
 			_ = err
-		} else if s.scoresRepo != nil && resp != nil {
-			// Store the guilt score from ML response
-			score := int32(resp.GuiltScore * 100) // Convert to 0-100 scale
-			meta := map[string]interface{}{
-				"roast_text":   resp.RoastText,
-				"tags":         resp.Tags,
-				"safety_flags": resp.SafetyFlags,
+		} else if output != nil {
+			// Store the roast text in the entry
+			roastText := sql.NullString{String: output.RoastText, Valid: true}
+			err = s.repo.UpdateRoast(ctx, e.ID, roastText)
+			if err != nil {
+				// Log error but don't fail entry creation
+				_ = err
 			}
-			metaJSON, _ := json.Marshal(meta)
-			metaBytes := pqtype.NullRawMessage{
-				RawMessage: metaJSON,
-				Valid:      true,
+
+			// Store the guilt score if scores repository available
+			if s.scoresRepo != nil {
+				score := int32(output.GuiltScore * 100) // Convert to 0-100 scale
+				_, _ = s.scoresRepo.CreateScore(ctx, sid, score, nil)
 			}
-			_, _ = s.scoresRepo.CreateScore(ctx, sid, score, metaBytes)
 		}
 	}
 
