@@ -7,46 +7,62 @@ option go_package = "guiltmachine/backend/internal/proto/gen/v1;v1";
 import "google/protobuf/timestamp.proto";
 
 service SessionService {
-  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
   rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
-  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+  rpc ListSessionsByUser(ListSessionsByUserRequest) returns (ListSessionsByUserResponse);
 }
 
-message StartSessionRequest {
+message CreateSessionRequest {
   string user_id = 1;
-  string notes = 2; // optional text, empty means none
+  string notes = 2;
 }
 
-message StartSessionResponse {
-  string session_id = 1;
-  google.protobuf.Timestamp started_at = 2;
+message CreateSessionResponse {
+  string id = 1;
+  string user_id = 2;
   string notes = 3;
+  google.protobuf.Timestamp created_at = 4;
 }
 
 message EndSessionRequest {
-  string session_id = 1;
+  string id = 1;
 }
 
 message EndSessionResponse {
-  string session_id = 1;
-  google.protobuf.Timestamp started_at = 2;
-  google.protobuf.Timestamp ended_at = 3;
-  string notes = 4;
+  string id = 1;
+  string user_id = 2;
+  string notes = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp ended_at = 5;
 }
 
-message ListSessionsRequest {
+message GetSessionRequest {
+  string id = 1;
+}
+
+message GetSessionResponse {
+  string id = 1;
+  string user_id = 2;
+  string notes = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp ended_at = 5;
+}
+
+message ListSessionsByUserRequest {
   string user_id = 1;
   int32 limit = 2;
   int32 offset = 3;
 }
 
-message ListSessionsResponse {
+message ListSessionsByUserResponse {
   repeated SessionItem sessions = 1;
 }
 
 message SessionItem {
-  string session_id = 1;
-  google.protobuf.Timestamp started_at = 2;
-  google.protobuf.Timestamp ended_at = 3;
-  string notes = 4;
+  string id = 1;
+  string user_id = 2;
+  string notes = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp ended_at = 5;
 }

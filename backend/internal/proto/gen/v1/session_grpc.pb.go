@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.4
-// source: session.proto
+// source: internal/proto/session.proto
 
 package v1
 
@@ -19,18 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SessionService_StartSession_FullMethodName = "/guiltmachine.v1.SessionService/StartSession"
-	SessionService_EndSession_FullMethodName   = "/guiltmachine.v1.SessionService/EndSession"
-	SessionService_ListSessions_FullMethodName = "/guiltmachine.v1.SessionService/ListSessions"
+	SessionService_CreateSession_FullMethodName      = "/guiltmachine.v1.SessionService/CreateSession"
+	SessionService_EndSession_FullMethodName         = "/guiltmachine.v1.SessionService/EndSession"
+	SessionService_GetSession_FullMethodName         = "/guiltmachine.v1.SessionService/GetSession"
+	SessionService_ListSessionsByUser_FullMethodName = "/guiltmachine.v1.SessionService/ListSessionsByUser"
 )
 
 // SessionServiceClient is the client API for SessionService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SessionServiceClient interface {
-	StartSession(ctx context.Context, in *StartSessionRequest, opts ...grpc.CallOption) (*StartSessionResponse, error)
+	CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*CreateSessionResponse, error)
 	EndSession(ctx context.Context, in *EndSessionRequest, opts ...grpc.CallOption) (*EndSessionResponse, error)
-	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*GetSessionResponse, error)
+	ListSessionsByUser(ctx context.Context, in *ListSessionsByUserRequest, opts ...grpc.CallOption) (*ListSessionsByUserResponse, error)
 }
 
 type sessionServiceClient struct {
@@ -41,10 +43,10 @@ func NewSessionServiceClient(cc grpc.ClientConnInterface) SessionServiceClient {
 	return &sessionServiceClient{cc}
 }
 
-func (c *sessionServiceClient) StartSession(ctx context.Context, in *StartSessionRequest, opts ...grpc.CallOption) (*StartSessionResponse, error) {
+func (c *sessionServiceClient) CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*CreateSessionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StartSessionResponse)
-	err := c.cc.Invoke(ctx, SessionService_StartSession_FullMethodName, in, out, cOpts...)
+	out := new(CreateSessionResponse)
+	err := c.cc.Invoke(ctx, SessionService_CreateSession_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +63,20 @@ func (c *sessionServiceClient) EndSession(ctx context.Context, in *EndSessionReq
 	return out, nil
 }
 
-func (c *sessionServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
+func (c *sessionServiceClient) GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*GetSessionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListSessionsResponse)
-	err := c.cc.Invoke(ctx, SessionService_ListSessions_FullMethodName, in, out, cOpts...)
+	out := new(GetSessionResponse)
+	err := c.cc.Invoke(ctx, SessionService_GetSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionServiceClient) ListSessionsByUser(ctx context.Context, in *ListSessionsByUserRequest, opts ...grpc.CallOption) (*ListSessionsByUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSessionsByUserResponse)
+	err := c.cc.Invoke(ctx, SessionService_ListSessionsByUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +87,10 @@ func (c *sessionServiceClient) ListSessions(ctx context.Context, in *ListSession
 // All implementations must embed UnimplementedSessionServiceServer
 // for forward compatibility.
 type SessionServiceServer interface {
-	StartSession(context.Context, *StartSessionRequest) (*StartSessionResponse, error)
+	CreateSession(context.Context, *CreateSessionRequest) (*CreateSessionResponse, error)
 	EndSession(context.Context, *EndSessionRequest) (*EndSessionResponse, error)
-	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error)
+	ListSessionsByUser(context.Context, *ListSessionsByUserRequest) (*ListSessionsByUserResponse, error)
 	mustEmbedUnimplementedSessionServiceServer()
 }
 
@@ -88,14 +101,17 @@ type SessionServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSessionServiceServer struct{}
 
-func (UnimplementedSessionServiceServer) StartSession(context.Context, *StartSessionRequest) (*StartSessionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method StartSession not implemented")
+func (UnimplementedSessionServiceServer) CreateSession(context.Context, *CreateSessionRequest) (*CreateSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSession not implemented")
 }
 func (UnimplementedSessionServiceServer) EndSession(context.Context, *EndSessionRequest) (*EndSessionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EndSession not implemented")
 }
-func (UnimplementedSessionServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListSessions not implemented")
+func (UnimplementedSessionServiceServer) GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSession not implemented")
+}
+func (UnimplementedSessionServiceServer) ListSessionsByUser(context.Context, *ListSessionsByUserRequest) (*ListSessionsByUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSessionsByUser not implemented")
 }
 func (UnimplementedSessionServiceServer) mustEmbedUnimplementedSessionServiceServer() {}
 func (UnimplementedSessionServiceServer) testEmbeddedByValue()                        {}
@@ -118,20 +134,20 @@ func RegisterSessionServiceServer(s grpc.ServiceRegistrar, srv SessionServiceSer
 	s.RegisterService(&SessionService_ServiceDesc, srv)
 }
 
-func _SessionService_StartSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartSessionRequest)
+func _SessionService_CreateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSessionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SessionServiceServer).StartSession(ctx, in)
+		return srv.(SessionServiceServer).CreateSession(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SessionService_StartSession_FullMethodName,
+		FullMethod: SessionService_CreateSession_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServiceServer).StartSession(ctx, req.(*StartSessionRequest))
+		return srv.(SessionServiceServer).CreateSession(ctx, req.(*CreateSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -154,20 +170,38 @@ func _SessionService_EndSession_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SessionService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListSessionsRequest)
+func _SessionService_GetSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSessionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SessionServiceServer).ListSessions(ctx, in)
+		return srv.(SessionServiceServer).GetSession(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SessionService_ListSessions_FullMethodName,
+		FullMethod: SessionService_GetSession_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServiceServer).ListSessions(ctx, req.(*ListSessionsRequest))
+		return srv.(SessionServiceServer).GetSession(ctx, req.(*GetSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SessionService_ListSessionsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionsByUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).ListSessionsByUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_ListSessionsByUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).ListSessionsByUser(ctx, req.(*ListSessionsByUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -180,18 +214,22 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*SessionServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "StartSession",
-			Handler:    _SessionService_StartSession_Handler,
+			MethodName: "CreateSession",
+			Handler:    _SessionService_CreateSession_Handler,
 		},
 		{
 			MethodName: "EndSession",
 			Handler:    _SessionService_EndSession_Handler,
 		},
 		{
-			MethodName: "ListSessions",
-			Handler:    _SessionService_ListSessions_Handler,
+			MethodName: "GetSession",
+			Handler:    _SessionService_GetSession_Handler,
+		},
+		{
+			MethodName: "ListSessionsByUser",
+			Handler:    _SessionService_ListSessionsByUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "session.proto",
+	Metadata: "internal/proto/session.proto",
 }

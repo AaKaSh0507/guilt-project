@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func StartGRPCServer(register func(*grpc.Server)) {
@@ -15,6 +16,7 @@ func StartGRPCServer(register func(*grpc.Server)) {
 
 	s := grpc.NewServer()
 	register(s)
+	reflection.Register(s)
 
 	log.Println("gRPC server listening on :9090")
 
