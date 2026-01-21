@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"guiltmachine/internal/db"
-	userproto "guiltmachine/internal/proto/gen"
-	v1 "guiltmachine/internal/proto/gen/v1"
+	v1 "guiltmachine/internal/proto/gen"
+	sessionv1 "guiltmachine/internal/proto/gen/v1"
 	reposqlc "guiltmachine/internal/repository/sqlc"
 	"guiltmachine/internal/services"
 	grpchandlers "guiltmachine/internal/transport/grpc"
@@ -23,16 +23,18 @@ func main() {
 
 	// service
 	userService := services.NewUserService(repos.Users)
-
-	// handler
 	userHandler := grpchandlers.NewUserHandler(userService)
 
 	sessionService := services.NewSessionService(repos.Sessions)
 	sessionHandler := grpchandlers.NewSessionHandler(sessionService)
 
+	entryService := services.NewEntryService(repos.Entries)
+	entryHandler := grpchandlers.NewEntryHandler(entryService)
+
 	StartGRPCServer(func(s *grpc.Server) {
-		userproto.RegisterUserServiceServer(s, userHandler)
-		v1.RegisterSessionServiceServer(s, sessionHandler)
+		v1.RegisterUserServiceServer(s, userHandler)
+		sessionv1.RegisterSessionServiceServer(s, sessionHandler)
+		v1.RegisterEntryServiceServer(s, entryHandler)
 	})
 
 	log.Println("api ready")
