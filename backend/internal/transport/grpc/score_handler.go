@@ -36,7 +36,7 @@ func (h *ScoreHandler) CreateScore(ctx context.Context, req *v1.CreateScoreReque
 		ScoreId:   sc.ID.String(),
 		SessionId: sc.SessionID.String(),
 		Score:     sc.AggregateScore,
-		MetaJson:  rawMeta(sc.Meta),
+		MetaJson:  rawMetaScore(sc.Meta),
 		CreatedAt: timestamppb.New(sc.CreatedAt),
 	}, nil
 }
@@ -55,12 +55,12 @@ func (h *ScoreHandler) GetScore(ctx context.Context, req *v1.GetScoreRequest) (*
 		ScoreId:   sc.ID.String(),
 		SessionId: sc.SessionID.String(),
 		Score:     sc.AggregateScore,
-		MetaJson:  rawMeta(sc.Meta),
+		MetaJson:  rawMetaScore(sc.Meta),
 		CreatedAt: timestamppb.New(sc.CreatedAt),
 	}, nil
 }
 
-func rawMeta(m pqtype.NullRawMessage) string {
+func rawMetaScore(m pqtype.NullRawMessage) string {
 	if !m.Valid {
 		return ""
 	}

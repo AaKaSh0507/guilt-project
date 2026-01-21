@@ -34,11 +34,15 @@ func main() {
 	scoreService := services.NewScoreService(repos.Scores)
 	scoreHandler := grpchandlers.NewScoreHandler(scoreService)
 
+	preferencesService := services.NewPreferencesService(repos.Preferences)
+	preferencesHandler := grpchandlers.NewPreferencesHandler(preferencesService)
+
 	StartGRPCServer(func(s *grpc.Server) {
 		v1.RegisterUserServiceServer(s, userHandler)
 		sessionv1.RegisterSessionServiceServer(s, sessionHandler)
 		v1.RegisterEntryServiceServer(s, entryHandler)
 		v1.RegisterScoreServiceServer(s, scoreHandler)
+		v1.RegisterPreferencesServiceServer(s, preferencesHandler)
 	})
 
 	log.Println("api ready")
