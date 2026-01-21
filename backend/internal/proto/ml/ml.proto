@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ml;
+
+option go_package = "guiltmachine/internal/proto/gen/ml;ml";
+
+message RoastRequest {
+  string entry_text = 1;
+  string user_id = 2;
+  int32 humor_intensity = 3;
+  repeated string history = 4;
+}
+
+message RoastResponse {
+  double guilt_score = 1;
+  string roast_text = 2;
+  repeated string tags = 3;
+  repeated string safety_flags = 4;
+}
+
+service MLService {
+  rpc Roast (RoastRequest) returns (RoastResponse);
+}

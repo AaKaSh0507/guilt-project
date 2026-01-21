@@ -7,6 +7,7 @@ import (
 	cacheDomain "guiltmachine/internal/cache/domain"
 	cacheRedis "guiltmachine/internal/cache/redis"
 	"guiltmachine/internal/db"
+	"guiltmachine/internal/ml"
 	v1 "guiltmachine/internal/proto/gen"
 	sessionv1 "guiltmachine/internal/proto/gen/v1"
 	reposqlc "guiltmachine/internal/repository/sqlc"
@@ -39,6 +40,10 @@ func main() {
 	sessionCache := cacheDomain.NewSessionCache(redisCache)
 	prefsCache := cacheDomain.NewPreferencesCache(redisCache)
 
+	// init ML layer
+	infer := ml.NewInferenceStub()
+	mlService := ml.NewMLService(infer)
+
 	// service
 	userService := services.NewUserService(repos.Users)
 	userHandler := grpchandlers.NewUserHandler(userService)
@@ -46,7 +51,7 @@ func main() {
 	sessionService := services.NewSessionService(repos.Sessions, sessionCache)
 	sessionHandler := grpchandlers.NewSessionHandler(sessionService)
 
-	entryService := services.NewEntryService(repos.Entries)
+	entryService := services.NewEntryServiceWithML(repos.Entries, repos.Scores, mlService)
 	entryHandler := grpchandlers.NewEntryHandler(entryService)
 
 	scoreService := services.NewScoreService(repos.Scores)
