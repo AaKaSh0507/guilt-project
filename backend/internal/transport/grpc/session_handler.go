@@ -39,7 +39,7 @@ func (h *SessionHandler) CreateSession(ctx context.Context, req *v1.CreateSessio
 	return &v1.CreateSessionResponse{
 		Id:        sess.ID.String(),
 		UserId:    sess.UserID.String(),
-		Notes:     nullableString(sess.Notes),
+		Notes:     nullableStringSession(sess.Notes),
 		CreatedAt: timestamppb.New(sess.StartTime),
 	}, nil
 }
@@ -57,9 +57,9 @@ func (h *SessionHandler) EndSession(ctx context.Context, req *v1.EndSessionReque
 	return &v1.EndSessionResponse{
 		Id:        sess.ID.String(),
 		UserId:    sess.UserID.String(),
-		Notes:     nullableString(sess.Notes),
+		Notes:     nullableStringSession(sess.Notes),
 		CreatedAt: timestamppb.New(sess.StartTime),
-		EndedAt:   nullableTimestamp(sess.EndTime),
+		EndedAt:   nullableTimestampSession(sess.EndTime),
 	}, nil
 }
 
@@ -76,9 +76,9 @@ func (h *SessionHandler) GetSession(ctx context.Context, req *v1.GetSessionReque
 	return &v1.GetSessionResponse{
 		Id:        sess.ID.String(),
 		UserId:    sess.UserID.String(),
-		Notes:     nullableString(sess.Notes),
+		Notes:     nullableStringSession(sess.Notes),
 		CreatedAt: timestamppb.New(sess.StartTime),
-		EndedAt:   nullableTimestamp(sess.EndTime),
+		EndedAt:   nullableTimestampSession(sess.EndTime),
 	}, nil
 }
 
@@ -97,9 +97,9 @@ func (h *SessionHandler) ListSessionsByUser(ctx context.Context, req *v1.ListSes
 		items = append(items, &v1.SessionItem{
 			Id:        s.ID.String(),
 			UserId:    s.UserID.String(),
-			Notes:     nullableString(s.Notes),
+			Notes:     nullableStringSession(s.Notes),
 			CreatedAt: timestamppb.New(s.StartTime),
-			EndedAt:   nullableTimestamp(s.EndTime),
+			EndedAt:   nullableTimestampSession(s.EndTime),
 		})
 	}
 
@@ -108,15 +108,16 @@ func (h *SessionHandler) ListSessionsByUser(ctx context.Context, req *v1.ListSes
 	}, nil
 }
 
-// helper
-func nullableString(ns sql.NullString) string {
+// helpers
+
+func nullableStringSession(ns sql.NullString) string {
 	if ns.Valid {
 		return ns.String
 	}
 	return ""
 }
 
-func nullableTimestamp(nt sql.NullTime) *timestamppb.Timestamp {
+func nullableTimestampSession(nt sql.NullTime) *timestamppb.Timestamp {
 	if nt.Valid {
 		return timestamppb.New(nt.Time)
 	}

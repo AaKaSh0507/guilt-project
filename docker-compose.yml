@@ -15,5 +15,19 @@ services:
       - guilt_pgdata:/var/lib/postgresql/data
     command: ["postgres", "-c", "listen_addresses=*", "-c", "password_encryption=scram-sha-256"]
 
+  redis:
+    platform: linux/arm64
+    image: redis:7-alpine
+    container_name: guilt_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
 volumes:
   guilt_pgdata:
