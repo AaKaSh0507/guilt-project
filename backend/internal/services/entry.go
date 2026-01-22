@@ -3,10 +3,12 @@ package services
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/ml"
+	"guiltmachine/internal/queue"
 	"guiltmachine/internal/repository"
 
 	"github.com/google/uuid"
@@ -17,6 +19,7 @@ type EntryService struct {
 	scoresRepo   repository.ScoresRepository
 	orchestrator *ml.HybridOrchestrator
 	prefsService *PreferencesService
+	queue        *queue.Producer
 }
 
 func NewEntryService(r repository.EntriesRepository) *EntryService {
@@ -32,6 +35,15 @@ func NewEntryServiceWithHybrid(r repository.EntriesRepository, scoresRepo reposi
 	}
 }
 
+func NewEntryServiceWithQueue(r repository.EntriesRepository, scoresRepo repository.ScoresRepository, mlService *ml.MLService, prefsService *PreferencesService, producer *queue.Producer) *EntryService {
+	return &EntryService{
+		repo:         r,
+		scoresRepo:   scoresRepo,
+		prefsService: prefsService,
+		queue:        producer,
+	}
+}
+
 func (s *EntryService) CreateEntry(ctx context.Context, sessionID string, text string, level int32) (sqlc.GuiltEntry, error) {
 	sid, err := uuid.Parse(sessionID)
 	if err != nil {
@@ -43,8 +55,19 @@ func (s *EntryService) CreateEntry(ctx context.Context, sessionID string, text s
 		return sqlc.GuiltEntry{}, err
 	}
 
-	// Process through hybrid ML orchestrator if available
-	if s.orchestrator != nil {
+	// If queue available, enqueue ML job asynchronously
+	if s.queue != nil {
+		job := queue.EntryMLJob{
+			EntryID:   e.ID.String(),
+			UserID:    sid.String(),
+			Text:      text,
+			Persona:   "roast",
+			Intensity: 3,
+		}
+		_ = s.queue.Enqueue(ctx, job)
+		_ = s.repo.UpdateEntryStatus(ctx, e.ID, "pending")
+	} else if s.orchestrator != nil {
+		// Fallback to synchronous processing
 		// Default intensity and persona
 		intensity := 5
 		persona := ml.PersonaRoast
@@ -99,4 +122,45 @@ func (s *EntryService) ListEntries(ctx context.Context, sessionID string) ([]sql
 	}
 
 	return entries, nil
+}
+
+func (s *EntryService) ProcessMLJob(ctx context.Context, entryID string) error {
+	e, err := s.repo.GetEntry(ctx, uuid.MustParse(entryID))
+	if err != nil {
+		return err
+	}
+
+	var intensity = 3
+	if s.prefsService != nil {
+		prefs, _ := s.prefsService.GetPreferences(ctx, e.SessionID.String())
+		if prefs.Metadata.Valid {
+			// Parse metadata for intensity if available
+			var meta map[string]interface{}
+			_ = json.Unmarshal(prefs.Metadata.RawMessage, &meta)
+			if val, ok := meta["humor_intensity"]; ok {
+				if fval, ok := val.(float64); ok {
+					intensity = int(fval)
+				}
+			}
+		}
+	}
+
+	// For now, use orchestrator if available, otherwise skip
+	if s.orchestrator != nil {
+		out, err := s.orchestrator.Run(ctx, ml.HybridInput{
+			Text:      e.EntryText,
+			UserID:    e.SessionID.String(),
+			Intensity: intensity,
+			Persona:   ml.PersonaRoast,
+		})
+		if err != nil {
+			return err
+		}
+
+		roastText := sql.NullString{String: out.RoastText, Valid: true}
+		_ = s.repo.UpdateRoast(ctx, e.ID, roastText)
+		_ = s.repo.UpdateEntryStatus(ctx, e.ID, "completed")
+	}
+
+	return nil
 }

@@ -20,6 +20,7 @@ type GuiltEntry struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	RoastText  sql.NullString
+	Status     sql.NullString
 }
 
 type GuiltScore struct {

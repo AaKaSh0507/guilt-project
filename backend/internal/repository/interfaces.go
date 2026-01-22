@@ -26,6 +26,8 @@ type EntriesRepository interface {
 	CreateEntry(ctx context.Context, sessionID uuid.UUID, text string, level int32) (sqlc.GuiltEntry, error)
 	ListEntriesBySession(ctx context.Context, sessionID uuid.UUID) ([]sqlc.GuiltEntry, error)
 	UpdateRoast(ctx context.Context, entryID uuid.UUID, roastText sql.NullString) error
+	UpdateEntryStatus(ctx context.Context, entryID uuid.UUID, status string) error
+	GetEntry(ctx context.Context, entryID uuid.UUID) (sqlc.GuiltEntry, error)
 }
 
 type ScoresRepository interface {

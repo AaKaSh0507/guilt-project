@@ -138,6 +138,31 @@ func (r *entriesRepo) UpdateRoast(ctx context.Context, entryID uuid.UUID, roastT
 	return r.q.UpdateRoast(ctx, params)
 }
 
+func (r *entriesRepo) UpdateEntryStatus(ctx context.Context, entryID uuid.UUID, status string) error {
+	params := sqlc.UpdateEntryStatusParams{
+		ID:     entryID,
+		Status: sql.NullString{String: status, Valid: true},
+	}
+	return r.q.UpdateEntryStatus(ctx, params)
+}
+
+func (r *entriesRepo) GetEntry(ctx context.Context, entryID uuid.UUID) (sqlc.GuiltEntry, error) {
+	row, err := r.q.GetEntry(ctx, entryID)
+	if err != nil {
+		return sqlc.GuiltEntry{}, err
+	}
+	return sqlc.GuiltEntry{
+		ID:         row.ID,
+		SessionID:  row.SessionID,
+		EntryText:  row.EntryText,
+		GuiltLevel: row.GuiltLevel,
+		RoastText:  row.RoastText,
+		Status:     row.Status,
+		CreatedAt:  row.CreatedAt,
+		UpdatedAt:  row.UpdatedAt,
+	}, nil
+}
+
 // SCORES
 
 type scoresRepo struct{ q *sqlc.Queries }

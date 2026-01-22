@@ -64,6 +64,47 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Creat
 	return i, err
 }
 
+const getEntry = `-- name: GetEntry :one
+SELECT
+    id,
+    session_id,
+    entry_text,
+    guilt_level,
+    roast_text,
+    status,
+    created_at,
+    updated_at
+FROM guilt_entries
+WHERE id = $1
+`
+
+type GetEntryRow struct {
+	ID         uuid.UUID
+	SessionID  uuid.UUID
+	EntryText  string
+	GuiltLevel sql.NullInt32
+	RoastText  sql.NullString
+	Status     sql.NullString
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) GetEntry(ctx context.Context, id uuid.UUID) (GetEntryRow, error) {
+	row := q.db.QueryRowContext(ctx, getEntry, id)
+	var i GetEntryRow
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.EntryText,
+		&i.GuiltLevel,
+		&i.RoastText,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listEntriesBySession = `-- name: ListEntriesBySession :many
 SELECT
     id,
@@ -117,6 +158,20 @@ func (q *Queries) ListEntriesBySession(ctx context.Context, sessionID uuid.UUID)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateEntryStatus = `-- name: UpdateEntryStatus :exec
+UPDATE guilt_entries SET status = $2 WHERE id = $1
+`
+
+type UpdateEntryStatusParams struct {
+	ID     uuid.UUID
+	Status sql.NullString
+}
+
+func (q *Queries) UpdateEntryStatus(ctx context.Context, arg UpdateEntryStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateEntryStatus, arg.ID, arg.Status)
+	return err
 }
 
 const updateRoast = `-- name: UpdateRoast :exec
