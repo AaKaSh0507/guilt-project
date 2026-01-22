@@ -4,10 +4,9 @@ import (
 	"context"
 	"log"
 	"time"
+	"database/sql"
 
 	"github.com/redis/go-redis/v9"
-
-	ml "guiltmachine/internal/ml"
 	queue "guiltmachine/internal/queue"
 	sqlcrepo "guiltmachine/internal/repository/sqlc"
 	svcs "guiltmachine/internal/services"
@@ -26,12 +25,16 @@ func main() {
 	_ = stream.EnsureGroup(ctx, "ml-workers")
 
 	dbURL := "postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable"
-	repo := sqlcrepo.MustOpen(dbURL)
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("db open failed: %v", err)
+	}
+	if err := db.PingContext(ctx); err != nil {
+		log.Fatalf("db ping failed: %v", err)
+	}
+	repo := sqlcrepo.New(db)
 
-	infer := ml.NewInferenceStub()
-	mlService := ml.NewMLService(infer)
-
-	entries := svcs.NewEntryService(repo, mlService, nil) // prefs fetched inside
+	entries := svcs.NewEntryService(repo.Entries) // prefs fetched inside
 
 	consumer := queue.NewConsumer(stream, "ml-workers", "ml-consumer-1", 5*time.Second)
 
