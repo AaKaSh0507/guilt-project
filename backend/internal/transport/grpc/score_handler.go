@@ -6,6 +6,7 @@ import (
 
 	v1 "guiltmachine/internal/proto/gen"
 	"guiltmachine/internal/services"
+
 	"github.com/sqlc-dev/pqtype"
 
 	"google.golang.org/grpc/codes"
@@ -27,7 +28,7 @@ func (h *ScoreHandler) CreateScore(ctx context.Context, req *v1.CreateScoreReque
 		return nil, status.Error(codes.InvalidArgument, "session_id required")
 	}
 
-	sc, err := h.svc.CreateScore(ctx, req.SessionId, req.Score, req.MetaJson)
+	sc, err := h.svc.CreateScore(ctx, req.SessionId, nil, req.Score, req.MetaJson)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

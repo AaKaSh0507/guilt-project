@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/google/uuid"
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type ScoreService struct {
@@ -18,10 +19,19 @@ func NewScoreService(r repository.ScoresRepository) *ScoreService {
 	return &ScoreService{repo: r}
 }
 
-func (s *ScoreService) CreateScore(ctx context.Context, sessionID string, score int32, meta string) (sqlc.GuiltScore, error) {
+func (s *ScoreService) CreateScore(ctx context.Context, sessionID string, entryID *string, score int32, meta string) (sqlc.GuiltScore, error) {
 	sid, err := uuid.Parse(sessionID)
 	if err != nil {
 		return sqlc.GuiltScore{}, errors.New("invalid session_id")
+	}
+
+	var eid *uuid.UUID
+	if entryID != nil && *entryID != "" {
+		parsed, err := uuid.Parse(*entryID)
+		if err != nil {
+			return sqlc.GuiltScore{}, errors.New("invalid entry_id")
+		}
+		eid = &parsed
 	}
 
 	var decoded any
@@ -29,7 +39,7 @@ func (s *ScoreService) CreateScore(ctx context.Context, sessionID string, score 
 		_ = json.Unmarshal([]byte(meta), &decoded)
 	}
 
-	sc, err := s.repo.CreateScore(ctx, sid, score, decoded)
+	sc, err := s.repo.CreateScore(ctx, sid, eid, score, decoded)
 	if err != nil {
 		return sqlc.GuiltScore{}, err
 	}

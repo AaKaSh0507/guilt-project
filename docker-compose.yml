@@ -29,5 +29,33 @@ services:
       timeout: 2s
       retries: 20
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: guiltmachine-backend
+    restart: always
+    ports:
+      - "9090:9090"
+    environment:
+      DB_URL: postgres://guilt:guiltpass@postgres:5432/guiltmachine?sslmode=disable
+      REDIS_ADDR: redis:6379
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  envoy:
+    image: envoyproxy/envoy:v1.30-latest
+    container_name: guilt_envoy
+    volumes:
+      - ./deploy/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "8080:8080"
+      - "8001:8001"
+    depends_on:
+      - backend
+
 volumes:
   guilt_pgdata:

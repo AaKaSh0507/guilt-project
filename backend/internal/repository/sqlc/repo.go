@@ -167,22 +167,67 @@ func (r *entriesRepo) GetEntry(ctx context.Context, entryID uuid.UUID) (sqlc.Gui
 
 type scoresRepo struct{ q *sqlc.Queries }
 
-func (r *scoresRepo) CreateScore(ctx context.Context, sessionID uuid.UUID, score int32, meta any) (sqlc.GuiltScore, error) {
+func (r *scoresRepo) CreateScore(ctx context.Context, sessionID uuid.UUID, entryID *uuid.UUID, score int32, meta any) (sqlc.GuiltScore, error) {
 	var rm pqtype.NullRawMessage
 	if meta != nil {
 		b, _ := json.Marshal(meta)
 		rm = pqtype.NullRawMessage{RawMessage: b, Valid: true}
 	}
+	var eid uuid.NullUUID
+	if entryID != nil {
+		eid = uuid.NullUUID{UUID: *entryID, Valid: true}
+	}
 	params := sqlc.CreateScoreParams{
 		SessionID:      sessionID,
+		EntryID:        eid,
 		AggregateScore: score,
 		Meta:           rm,
 	}
-	return r.q.CreateScore(ctx, params)
+	row, err := r.q.CreateScore(ctx, params)
+	if err != nil {
+		return sqlc.GuiltScore{}, err
+	}
+	return sqlc.GuiltScore{
+		ID:             row.ID,
+		SessionID:      row.SessionID,
+		EntryID:        row.EntryID,
+		AggregateScore: row.AggregateScore,
+		Meta:           row.Meta,
+		CreatedAt:      row.CreatedAt,
+		UpdatedAt:      row.UpdatedAt,
+	}, nil
 }
 
 func (r *scoresRepo) GetScoreBySession(ctx context.Context, sessionID uuid.UUID) (sqlc.GuiltScore, error) {
-	return r.q.GetScoreBySession(ctx, sessionID)
+	row, err := r.q.GetScoreBySession(ctx, sessionID)
+	if err != nil {
+		return sqlc.GuiltScore{}, err
+	}
+	return sqlc.GuiltScore{
+		ID:             row.ID,
+		SessionID:      row.SessionID,
+		EntryID:        row.EntryID,
+		AggregateScore: row.AggregateScore,
+		Meta:           row.Meta,
+		CreatedAt:      row.CreatedAt,
+		UpdatedAt:      row.UpdatedAt,
+	}, nil
+}
+
+func (r *scoresRepo) GetScoreByEntry(ctx context.Context, entryID uuid.UUID) (sqlc.GuiltScore, error) {
+	row, err := r.q.GetScoreByEntry(ctx, uuid.NullUUID{UUID: entryID, Valid: true})
+	if err != nil {
+		return sqlc.GuiltScore{}, err
+	}
+	return sqlc.GuiltScore{
+		ID:             row.ID,
+		SessionID:      row.SessionID,
+		EntryID:        row.EntryID,
+		AggregateScore: row.AggregateScore,
+		Meta:           row.Meta,
+		CreatedAt:      row.CreatedAt,
+		UpdatedAt:      row.UpdatedAt,
+	}, nil
 }
 
 // PREFERENCES

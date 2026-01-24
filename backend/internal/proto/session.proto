@@ -23,6 +23,7 @@ message CreateSessionResponse {
   string user_id = 2;
   string notes = 3;
   google.protobuf.Timestamp created_at = 4;
+  string jwt = 5; // JWT token for authentication
 }
 
 message EndSessionRequest {

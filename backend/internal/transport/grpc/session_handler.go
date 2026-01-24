@@ -31,16 +31,17 @@ func (h *SessionHandler) CreateSession(ctx context.Context, req *v1.CreateSessio
 		notes = ""
 	}
 
-	sess, err := h.svc.CreateSession(ctx, req.UserId, &notes)
+	result, err := h.svc.CreateSessionWithJWT(ctx, req.UserId, &notes)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	return &v1.CreateSessionResponse{
-		Id:        sess.ID.String(),
-		UserId:    sess.UserID.String(),
-		Notes:     nullableStringSession(sess.Notes),
-		CreatedAt: timestamppb.New(sess.StartTime),
+		Id:        result.Session.ID.String(),
+		UserId:    result.Session.UserID.String(),
+		Notes:     nullableStringSession(result.Session.Notes),
+		CreatedAt: timestamppb.New(result.Session.StartTime),
+		Jwt:       result.JWT,
 	}, nil
 }
 

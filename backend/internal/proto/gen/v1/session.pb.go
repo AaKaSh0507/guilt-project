@@ -80,6 +80,7 @@ type CreateSessionResponse struct {
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Notes         string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Jwt           string                 `protobuf:"bytes,5,opt,name=jwt,proto3" json:"jwt,omitempty"` // JWT token for authentication
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -140,6 +141,13 @@ func (x *CreateSessionResponse) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *CreateSessionResponse) GetJwt() string {
+	if x != nil {
+		return x.Jwt
+	}
+	return ""
 }
 
 type EndSessionRequest struct {
@@ -569,13 +577,14 @@ const file_internal_proto_session_proto_rawDesc = "" +
 	"\x1cinternal/proto/session.proto\x12\x0fguiltmachine.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"E\n" +
 	"\x14CreateSessionRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05notes\x18\x02 \x01(\tR\x05notes\"\x91\x01\n" +
+	"\x05notes\x18\x02 \x01(\tR\x05notes\"\xa3\x01\n" +
 	"\x15CreateSessionResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05notes\x18\x03 \x01(\tR\x05notes\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"#\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x10\n" +
+	"\x03jwt\x18\x05 \x01(\tR\x03jwt\"#\n" +
 	"\x11EndSessionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\xc5\x01\n" +
 	"\x12EndSessionResponse\x12\x0e\n" +

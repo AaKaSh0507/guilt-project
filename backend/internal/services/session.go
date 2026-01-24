@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"guiltmachine/internal/auth"
 	cacheDomain "guiltmachine/internal/cache/domain"
 	"guiltmachine/internal/db/sqlc"
 	"guiltmachine/internal/repository"
@@ -14,10 +15,27 @@ import (
 type SessionService struct {
 	repo  repository.SessionsRepository
 	cache *cacheDomain.SessionCache
+	jwt   *auth.JWTManager
 }
 
 func NewSessionService(r repository.SessionsRepository, c *cacheDomain.SessionCache) *SessionService {
 	return &SessionService{repo: r, cache: c}
+}
+
+// NewSessionServiceWithJWT creates a SessionService with JWT support
+func NewSessionServiceWithJWT(r repository.SessionsRepository, c *cacheDomain.SessionCache, jwt *auth.JWTManager) *SessionService {
+	return &SessionService{repo: r, cache: c, jwt: jwt}
+}
+
+// SetJWTManager sets the JWT manager (useful for testing or lazy initialization)
+func (s *SessionService) SetJWTManager(jwt *auth.JWTManager) {
+	s.jwt = jwt
+}
+
+// CreateSessionResult holds the result of creating a session
+type CreateSessionResult struct {
+	Session sqlc.GuiltSession
+	JWT     string
 }
 
 func (s *SessionService) CreateSession(ctx context.Context, userID string, notes *string) (sqlc.GuiltSession, error) {
@@ -32,6 +50,32 @@ func (s *SessionService) CreateSession(ctx context.Context, userID string, notes
 	}
 
 	return sess, nil
+}
+
+// CreateSessionWithJWT creates a session and issues a JWT token
+func (s *SessionService) CreateSessionWithJWT(ctx context.Context, userID string, notes *string) (CreateSessionResult, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return CreateSessionResult{}, errors.New("invalid user_id")
+	}
+
+	sess, err := s.repo.CreateSession(ctx, uid, notes)
+	if err != nil {
+		return CreateSessionResult{}, err
+	}
+
+	result := CreateSessionResult{Session: sess}
+
+	// Issue JWT if manager is configured
+	if s.jwt != nil {
+		token, err := s.jwt.Issue(userID, sess.ID.String())
+		if err != nil {
+			return CreateSessionResult{}, err
+		}
+		result.JWT = token
+	}
+
+	return result, nil
 }
 
 func (s *SessionService) EndSession(ctx context.Context, id string) (sqlc.GuiltSession, error) {
