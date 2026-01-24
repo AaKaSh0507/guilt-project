@@ -105,3 +105,42 @@ help:
 	@echo "  make clean       - Remove build artifacts and stop all containers"
 	@echo "  make logs        - Show postgres logs"
 	@echo "  make logs-all    - Show logs for all services"
+	@echo "  make envoy-up    - Start envoy proxy"
+	@echo "  make envoy-logs  - Show envoy logs"
+	@echo "  make backend-up  - Start backend container"
+	@echo "  make full-stack  - Start all services (postgres, redis, backend, envoy)"
+
+# Envoy targets
+.PHONY: envoy-up envoy-logs envoy-down backend-up backend-logs full-stack
+
+envoy-up:
+	$(DC) up -d envoy
+
+envoy-logs:
+	$(DC) logs -f envoy
+
+envoy-down:
+	$(DC) stop envoy || true
+
+backend-up:
+	$(DC) up -d backend
+
+backend-logs:
+	$(DC) logs -f backend
+
+backend-down:
+	$(DC) stop backend || true
+
+full-stack:
+	$(DC) up -d postgres redis
+	@$(MAKE) db-wait
+	@$(MAKE) redis-wait
+	@$(MAKE) migrate-up
+	$(DC) up -d backend envoy
+	@echo "Full stack running:"
+	@echo "  - Postgres: localhost:5432"
+	@echo "  - Redis: localhost:6379"
+	@echo "  - Backend gRPC: localhost:9090"
+	@echo "  - Envoy (gRPC-Web): localhost:8080"
+	@echo "  - Envoy Admin: localhost:8001"
+

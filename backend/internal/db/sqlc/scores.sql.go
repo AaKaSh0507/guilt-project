@@ -7,6 +7,7 @@ package sqlc
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
@@ -15,16 +16,19 @@ import (
 const createScore = `-- name: CreateScore :one
 INSERT INTO guilt_scores (
     session_id,
+    entry_id,
     aggregate_score,
     meta
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 RETURNING
     id,
     session_id,
+    entry_id,
     aggregate_score,
     meta,
     created_at,
@@ -33,16 +37,71 @@ RETURNING
 
 type CreateScoreParams struct {
 	SessionID      uuid.UUID
+	EntryID        uuid.NullUUID
 	AggregateScore int32
 	Meta           pqtype.NullRawMessage
 }
 
-func (q *Queries) CreateScore(ctx context.Context, arg CreateScoreParams) (GuiltScore, error) {
-	row := q.db.QueryRowContext(ctx, createScore, arg.SessionID, arg.AggregateScore, arg.Meta)
-	var i GuiltScore
+type CreateScoreRow struct {
+	ID             uuid.UUID
+	SessionID      uuid.UUID
+	EntryID        uuid.NullUUID
+	AggregateScore int32
+	Meta           pqtype.NullRawMessage
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+func (q *Queries) CreateScore(ctx context.Context, arg CreateScoreParams) (CreateScoreRow, error) {
+	row := q.db.QueryRowContext(ctx, createScore,
+		arg.SessionID,
+		arg.EntryID,
+		arg.AggregateScore,
+		arg.Meta,
+	)
+	var i CreateScoreRow
 	err := row.Scan(
 		&i.ID,
 		&i.SessionID,
+		&i.EntryID,
+		&i.AggregateScore,
+		&i.Meta,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getScoreByEntry = `-- name: GetScoreByEntry :one
+SELECT
+    id,
+    session_id,
+    entry_id,
+    aggregate_score,
+    meta,
+    created_at,
+    updated_at
+FROM guilt_scores
+WHERE entry_id = $1
+`
+
+type GetScoreByEntryRow struct {
+	ID             uuid.UUID
+	SessionID      uuid.UUID
+	EntryID        uuid.NullUUID
+	AggregateScore int32
+	Meta           pqtype.NullRawMessage
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+func (q *Queries) GetScoreByEntry(ctx context.Context, entryID uuid.NullUUID) (GetScoreByEntryRow, error) {
+	row := q.db.QueryRowContext(ctx, getScoreByEntry, entryID)
+	var i GetScoreByEntryRow
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.EntryID,
 		&i.AggregateScore,
 		&i.Meta,
 		&i.CreatedAt,
@@ -55,6 +114,7 @@ const getScoreBySession = `-- name: GetScoreBySession :one
 SELECT
     id,
     session_id,
+    entry_id,
     aggregate_score,
     meta,
     created_at,
@@ -63,12 +123,23 @@ FROM guilt_scores
 WHERE session_id = $1
 `
 
-func (q *Queries) GetScoreBySession(ctx context.Context, sessionID uuid.UUID) (GuiltScore, error) {
+type GetScoreBySessionRow struct {
+	ID             uuid.UUID
+	SessionID      uuid.UUID
+	EntryID        uuid.NullUUID
+	AggregateScore int32
+	Meta           pqtype.NullRawMessage
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+func (q *Queries) GetScoreBySession(ctx context.Context, sessionID uuid.UUID) (GetScoreBySessionRow, error) {
 	row := q.db.QueryRowContext(ctx, getScoreBySession, sessionID)
-	var i GuiltScore
+	var i GetScoreBySessionRow
 	err := row.Scan(
 		&i.ID,
 		&i.SessionID,
+		&i.EntryID,
 		&i.AggregateScore,
 		&i.Meta,
 		&i.CreatedAt,

@@ -2,29 +2,42 @@ package main
 
 import (
 	"context"
-	"log"
-	"time"
 	"database/sql"
+	"log"
+	"os"
+	"time"
 
-	"github.com/redis/go-redis/v9"
+	"guiltmachine/internal/ml"
 	queue "guiltmachine/internal/queue"
 	sqlcrepo "guiltmachine/internal/repository/sqlc"
 	svcs "guiltmachine/internal/services"
 
+	"github.com/redis/go-redis/v9"
+
 	_ "github.com/lib/pq"
 )
+
+func getEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
 
 func main() {
 	ctx := context.Background()
 
+	// Get config from environment with fallback defaults
+	dbURL := getEnv("DB_URL", "postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable")
+	redisAddr := getEnv("REDIS_ADDR", "localhost:6379")
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379", // adjust docker-compose later
+		Addr: redisAddr,
 	})
 
 	stream := queue.NewStreams(rdb, "ml:entries")
 	_ = stream.EnsureGroup(ctx, "ml-workers")
 
-	dbURL := "postgres://guilt:guiltpass@localhost:5432/guiltmachine?sslmode=disable"
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("db open failed: %v", err)
@@ -34,7 +47,13 @@ func main() {
 	}
 	repo := sqlcrepo.New(db)
 
-	entries := svcs.NewEntryService(repo.Entries) // prefs fetched inside
+	// init ML layer
+	infer := ml.NewInferenceStub()
+	orchestrator := ml.NewHybridOrchestrator(infer)
+
+	// init services with orchestrator for ML processing
+	prefsService := svcs.NewPreferencesService(repo.Preferences, nil)
+	entries := svcs.NewEntryServiceWithHybrid(repo.Entries, repo.Scores, orchestrator, prefsService)
 
 	consumer := queue.NewConsumer(stream, "ml-workers", "ml-consumer-1", 5*time.Second)
 

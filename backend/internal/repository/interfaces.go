@@ -31,8 +31,9 @@ type EntriesRepository interface {
 }
 
 type ScoresRepository interface {
-	CreateScore(ctx context.Context, sessionID uuid.UUID, score int32, meta any) (sqlc.GuiltScore, error)
+	CreateScore(ctx context.Context, sessionID uuid.UUID, entryID *uuid.UUID, score int32, meta any) (sqlc.GuiltScore, error)
 	GetScoreBySession(ctx context.Context, sessionID uuid.UUID) (sqlc.GuiltScore, error)
+	GetScoreByEntry(ctx context.Context, entryID uuid.UUID) (sqlc.GuiltScore, error)
 }
 
 type PreferencesRepository interface {

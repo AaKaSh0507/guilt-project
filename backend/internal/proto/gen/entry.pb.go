@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.4
-// source: entry.proto
+// source: internal/proto/entry.proto
 
 package v1
 
@@ -33,7 +33,7 @@ type CreateEntryRequest struct {
 
 func (x *CreateEntryRequest) Reset() {
 	*x = CreateEntryRequest{}
-	mi := &file_entry_proto_msgTypes[0]
+	mi := &file_internal_proto_entry_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *CreateEntryRequest) String() string {
 func (*CreateEntryRequest) ProtoMessage() {}
 
 func (x *CreateEntryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entry_proto_msgTypes[0]
+	mi := &file_internal_proto_entry_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *CreateEntryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEntryRequest.ProtoReflect.Descriptor instead.
 func (*CreateEntryRequest) Descriptor() ([]byte, []int) {
-	return file_entry_proto_rawDescGZIP(), []int{0}
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *CreateEntryRequest) GetSessionId() string {
@@ -89,13 +89,14 @@ type CreateEntryResponse struct {
 	Text          string                 `protobuf:"bytes,3,opt,name=text,proto3" json:"text,omitempty"`
 	Level         int32                  `protobuf:"varint,4,opt,name=level,proto3" json:"level,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"` // pending/completed/failed
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateEntryResponse) Reset() {
 	*x = CreateEntryResponse{}
-	mi := &file_entry_proto_msgTypes[1]
+	mi := &file_internal_proto_entry_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -107,7 +108,7 @@ func (x *CreateEntryResponse) String() string {
 func (*CreateEntryResponse) ProtoMessage() {}
 
 func (x *CreateEntryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_entry_proto_msgTypes[1]
+	mi := &file_internal_proto_entry_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -120,7 +121,7 @@ func (x *CreateEntryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEntryResponse.ProtoReflect.Descriptor instead.
 func (*CreateEntryResponse) Descriptor() ([]byte, []int) {
-	return file_entry_proto_rawDescGZIP(), []int{1}
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateEntryResponse) GetEntryId() string {
@@ -158,6 +159,13 @@ func (x *CreateEntryResponse) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *CreateEntryResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type ListEntriesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -167,7 +175,7 @@ type ListEntriesRequest struct {
 
 func (x *ListEntriesRequest) Reset() {
 	*x = ListEntriesRequest{}
-	mi := &file_entry_proto_msgTypes[2]
+	mi := &file_internal_proto_entry_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -179,7 +187,7 @@ func (x *ListEntriesRequest) String() string {
 func (*ListEntriesRequest) ProtoMessage() {}
 
 func (x *ListEntriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entry_proto_msgTypes[2]
+	mi := &file_internal_proto_entry_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -192,7 +200,7 @@ func (x *ListEntriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEntriesRequest.ProtoReflect.Descriptor instead.
 func (*ListEntriesRequest) Descriptor() ([]byte, []int) {
-	return file_entry_proto_rawDescGZIP(), []int{2}
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ListEntriesRequest) GetSessionId() string {
@@ -211,7 +219,7 @@ type ListEntriesResponse struct {
 
 func (x *ListEntriesResponse) Reset() {
 	*x = ListEntriesResponse{}
-	mi := &file_entry_proto_msgTypes[3]
+	mi := &file_internal_proto_entry_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -223,7 +231,7 @@ func (x *ListEntriesResponse) String() string {
 func (*ListEntriesResponse) ProtoMessage() {}
 
 func (x *ListEntriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_entry_proto_msgTypes[3]
+	mi := &file_internal_proto_entry_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +244,7 @@ func (x *ListEntriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEntriesResponse.ProtoReflect.Descriptor instead.
 func (*ListEntriesResponse) Descriptor() ([]byte, []int) {
-	return file_entry_proto_rawDescGZIP(), []int{3}
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListEntriesResponse) GetEntries() []*EntryItem {
@@ -252,13 +260,16 @@ type EntryItem struct {
 	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
 	Level         int32                  `protobuf:"varint,3,opt,name=level,proto3" json:"level,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	RoastText     string                 `protobuf:"bytes,6,opt,name=roast_text,json=roastText,proto3" json:"roast_text,omitempty"`
+	GuiltScore    int32                  `protobuf:"varint,7,opt,name=guilt_score,json=guiltScore,proto3" json:"guilt_score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EntryItem) Reset() {
 	*x = EntryItem{}
-	mi := &file_entry_proto_msgTypes[4]
+	mi := &file_internal_proto_entry_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +281,7 @@ func (x *EntryItem) String() string {
 func (*EntryItem) ProtoMessage() {}
 
 func (x *EntryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_entry_proto_msgTypes[4]
+	mi := &file_internal_proto_entry_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +294,7 @@ func (x *EntryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntryItem.ProtoReflect.Descriptor instead.
 func (*EntryItem) Descriptor() ([]byte, []int) {
-	return file_entry_proto_rawDescGZIP(), []int{4}
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EntryItem) GetEntryId() string {
@@ -314,16 +325,181 @@ func (x *EntryItem) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-var File_entry_proto protoreflect.FileDescriptor
+func (x *EntryItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
 
-const file_entry_proto_rawDesc = "" +
+func (x *EntryItem) GetRoastText() string {
+	if x != nil {
+		return x.RoastText
+	}
+	return ""
+}
+
+func (x *EntryItem) GetGuiltScore() int32 {
+	if x != nil {
+		return x.GuiltScore
+	}
+	return 0
+}
+
+type GetEntryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEntryRequest) Reset() {
+	*x = GetEntryRequest{}
+	mi := &file_internal_proto_entry_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEntryRequest) ProtoMessage() {}
+
+func (x *GetEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_proto_entry_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEntryRequest.ProtoReflect.Descriptor instead.
+func (*GetEntryRequest) Descriptor() ([]byte, []int) {
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetEntryRequest) GetEntryId() string {
+	if x != nil {
+		return x.EntryId
+	}
+	return ""
+}
+
+type GetEntryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Text          string                 `protobuf:"bytes,3,opt,name=text,proto3" json:"text,omitempty"`
+	Level         int32                  `protobuf:"varint,4,opt,name=level,proto3" json:"level,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	RoastText     string                 `protobuf:"bytes,7,opt,name=roast_text,json=roastText,proto3" json:"roast_text,omitempty"`
+	GuiltScore    int32                  `protobuf:"varint,8,opt,name=guilt_score,json=guiltScore,proto3" json:"guilt_score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEntryResponse) Reset() {
+	*x = GetEntryResponse{}
+	mi := &file_internal_proto_entry_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEntryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEntryResponse) ProtoMessage() {}
+
+func (x *GetEntryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_proto_entry_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEntryResponse.ProtoReflect.Descriptor instead.
+func (*GetEntryResponse) Descriptor() ([]byte, []int) {
+	return file_internal_proto_entry_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetEntryResponse) GetEntryId() string {
+	if x != nil {
+		return x.EntryId
+	}
+	return ""
+}
+
+func (x *GetEntryResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *GetEntryResponse) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *GetEntryResponse) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *GetEntryResponse) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *GetEntryResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *GetEntryResponse) GetRoastText() string {
+	if x != nil {
+		return x.RoastText
+	}
+	return ""
+}
+
+func (x *GetEntryResponse) GetGuiltScore() int32 {
+	if x != nil {
+		return x.GuiltScore
+	}
+	return 0
+}
+
+var File_internal_proto_entry_proto protoreflect.FileDescriptor
+
+const file_internal_proto_entry_proto_rawDesc = "" +
 	"\n" +
-	"\ventry.proto\x12\x0fguiltmachine.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"]\n" +
+	"\x1ainternal/proto/entry.proto\x12\x0fguiltmachine.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"]\n" +
 	"\x12CreateEntryRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12\x14\n" +
-	"\x05level\x18\x03 \x01(\x05R\x05level\"\xb4\x01\n" +
+	"\x05level\x18\x03 \x01(\x05R\x05level\"\xcc\x01\n" +
 	"\x13CreateEntryResponse\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x1d\n" +
 	"\n" +
@@ -331,78 +507,105 @@ const file_entry_proto_rawDesc = "" +
 	"\x04text\x18\x03 \x01(\tR\x04text\x12\x14\n" +
 	"\x05level\x18\x04 \x01(\x05R\x05level\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"3\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\"3\n" +
 	"\x12ListEntriesRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"K\n" +
 	"\x13ListEntriesResponse\x124\n" +
-	"\aentries\x18\x01 \x03(\v2\x1a.guiltmachine.v1.EntryItemR\aentries\"\x8b\x01\n" +
+	"\aentries\x18\x01 \x03(\v2\x1a.guiltmachine.v1.EntryItemR\aentries\"\xe3\x01\n" +
 	"\tEntryItem\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12\x14\n" +
 	"\x05level\x18\x03 \x01(\x05R\x05level\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt2\xc2\x01\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"roast_text\x18\x06 \x01(\tR\troastText\x12\x1f\n" +
+	"\vguilt_score\x18\a \x01(\x05R\n" +
+	"guiltScore\",\n" +
+	"\x0fGetEntryRequest\x12\x19\n" +
+	"\bentry_id\x18\x01 \x01(\tR\aentryId\"\x89\x02\n" +
+	"\x10GetEntryResponse\x12\x19\n" +
+	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04text\x18\x03 \x01(\tR\x04text\x12\x14\n" +
+	"\x05level\x18\x04 \x01(\x05R\x05level\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"roast_text\x18\a \x01(\tR\troastText\x12\x1f\n" +
+	"\vguilt_score\x18\b \x01(\x05R\n" +
+	"guiltScore2\x93\x02\n" +
 	"\fEntryService\x12X\n" +
 	"\vCreateEntry\x12#.guiltmachine.v1.CreateEntryRequest\x1a$.guiltmachine.v1.CreateEntryResponse\x12X\n" +
-	"\vListEntries\x12#.guiltmachine.v1.ListEntriesRequest\x1a$.guiltmachine.v1.ListEntriesResponseB/Z-guiltmachine/backend/internal/proto/gen/v1;v1b\x06proto3"
+	"\vListEntries\x12#.guiltmachine.v1.ListEntriesRequest\x1a$.guiltmachine.v1.ListEntriesResponse\x12O\n" +
+	"\bGetEntry\x12 .guiltmachine.v1.GetEntryRequest\x1a!.guiltmachine.v1.GetEntryResponseB/Z-guiltmachine/backend/internal/proto/gen/v1;v1b\x06proto3"
 
 var (
-	file_entry_proto_rawDescOnce sync.Once
-	file_entry_proto_rawDescData []byte
+	file_internal_proto_entry_proto_rawDescOnce sync.Once
+	file_internal_proto_entry_proto_rawDescData []byte
 )
 
-func file_entry_proto_rawDescGZIP() []byte {
-	file_entry_proto_rawDescOnce.Do(func() {
-		file_entry_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_entry_proto_rawDesc), len(file_entry_proto_rawDesc)))
+func file_internal_proto_entry_proto_rawDescGZIP() []byte {
+	file_internal_proto_entry_proto_rawDescOnce.Do(func() {
+		file_internal_proto_entry_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_internal_proto_entry_proto_rawDesc), len(file_internal_proto_entry_proto_rawDesc)))
 	})
-	return file_entry_proto_rawDescData
+	return file_internal_proto_entry_proto_rawDescData
 }
 
-var file_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_entry_proto_goTypes = []any{
+var file_internal_proto_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_internal_proto_entry_proto_goTypes = []any{
 	(*CreateEntryRequest)(nil),    // 0: guiltmachine.v1.CreateEntryRequest
 	(*CreateEntryResponse)(nil),   // 1: guiltmachine.v1.CreateEntryResponse
 	(*ListEntriesRequest)(nil),    // 2: guiltmachine.v1.ListEntriesRequest
 	(*ListEntriesResponse)(nil),   // 3: guiltmachine.v1.ListEntriesResponse
 	(*EntryItem)(nil),             // 4: guiltmachine.v1.EntryItem
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*GetEntryRequest)(nil),       // 5: guiltmachine.v1.GetEntryRequest
+	(*GetEntryResponse)(nil),      // 6: guiltmachine.v1.GetEntryResponse
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
-var file_entry_proto_depIdxs = []int32{
-	5, // 0: guiltmachine.v1.CreateEntryResponse.created_at:type_name -> google.protobuf.Timestamp
+var file_internal_proto_entry_proto_depIdxs = []int32{
+	7, // 0: guiltmachine.v1.CreateEntryResponse.created_at:type_name -> google.protobuf.Timestamp
 	4, // 1: guiltmachine.v1.ListEntriesResponse.entries:type_name -> guiltmachine.v1.EntryItem
-	5, // 2: guiltmachine.v1.EntryItem.created_at:type_name -> google.protobuf.Timestamp
-	0, // 3: guiltmachine.v1.EntryService.CreateEntry:input_type -> guiltmachine.v1.CreateEntryRequest
-	2, // 4: guiltmachine.v1.EntryService.ListEntries:input_type -> guiltmachine.v1.ListEntriesRequest
-	1, // 5: guiltmachine.v1.EntryService.CreateEntry:output_type -> guiltmachine.v1.CreateEntryResponse
-	3, // 6: guiltmachine.v1.EntryService.ListEntries:output_type -> guiltmachine.v1.ListEntriesResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	7, // 2: guiltmachine.v1.EntryItem.created_at:type_name -> google.protobuf.Timestamp
+	7, // 3: guiltmachine.v1.GetEntryResponse.created_at:type_name -> google.protobuf.Timestamp
+	0, // 4: guiltmachine.v1.EntryService.CreateEntry:input_type -> guiltmachine.v1.CreateEntryRequest
+	2, // 5: guiltmachine.v1.EntryService.ListEntries:input_type -> guiltmachine.v1.ListEntriesRequest
+	5, // 6: guiltmachine.v1.EntryService.GetEntry:input_type -> guiltmachine.v1.GetEntryRequest
+	1, // 7: guiltmachine.v1.EntryService.CreateEntry:output_type -> guiltmachine.v1.CreateEntryResponse
+	3, // 8: guiltmachine.v1.EntryService.ListEntries:output_type -> guiltmachine.v1.ListEntriesResponse
+	6, // 9: guiltmachine.v1.EntryService.GetEntry:output_type -> guiltmachine.v1.GetEntryResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_entry_proto_init() }
-func file_entry_proto_init() {
-	if File_entry_proto != nil {
+func init() { file_internal_proto_entry_proto_init() }
+func file_internal_proto_entry_proto_init() {
+	if File_internal_proto_entry_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_entry_proto_rawDesc), len(file_entry_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_proto_entry_proto_rawDesc), len(file_internal_proto_entry_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_entry_proto_goTypes,
-		DependencyIndexes: file_entry_proto_depIdxs,
-		MessageInfos:      file_entry_proto_msgTypes,
+		GoTypes:           file_internal_proto_entry_proto_goTypes,
+		DependencyIndexes: file_internal_proto_entry_proto_depIdxs,
+		MessageInfos:      file_internal_proto_entry_proto_msgTypes,
 	}.Build()
-	File_entry_proto = out.File
-	file_entry_proto_goTypes = nil
-	file_entry_proto_depIdxs = nil
+	File_internal_proto_entry_proto = out.File
+	file_internal_proto_entry_proto_goTypes = nil
+	file_internal_proto_entry_proto_depIdxs = nil
 }

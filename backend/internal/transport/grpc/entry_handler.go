@@ -36,12 +36,18 @@ func (h *EntryHandler) CreateEntry(ctx context.Context, req *v1.CreateEntryReque
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	entryStatus := "pending"
+	if e.Status.Valid {
+		entryStatus = e.Status.String
+	}
+
 	return &v1.CreateEntryResponse{
 		EntryId:   e.ID.String(),
 		SessionId: e.SessionID.String(),
 		Text:      nullableText(e.EntryText),
 		Level:     int32(e.GuiltLevel.Int32),
 		CreatedAt: timestamppb.New(e.CreatedAt),
+		Status:    entryStatus,
 	}, nil
 }
 
@@ -57,15 +63,63 @@ func (h *EntryHandler) ListEntries(ctx context.Context, req *v1.ListEntriesReque
 
 	items := make([]*v1.EntryItem, 0, len(entries))
 	for _, e := range entries {
+		entryStatus := ""
+		if e.Status.Valid {
+			entryStatus = e.Status.String
+		}
+		roastText := ""
+		if e.RoastText.Valid {
+			roastText = e.RoastText.String
+		}
+		// Get score for entry
+		score, _ := h.svc.GetEntryScore(ctx, e.ID.String())
+
 		items = append(items, &v1.EntryItem{
-			EntryId:   e.ID.String(),
-			Text:      nullableText(e.EntryText),
-			Level:     int32(e.GuiltLevel.Int32),
-			CreatedAt: timestamppb.New(e.CreatedAt),
+			EntryId:    e.ID.String(),
+			Text:       nullableText(e.EntryText),
+			Level:      int32(e.GuiltLevel.Int32),
+			CreatedAt:  timestamppb.New(e.CreatedAt),
+			Status:     entryStatus,
+			RoastText:  roastText,
+			GuiltScore: score,
 		})
 	}
 
 	return &v1.ListEntriesResponse{Entries: items}, nil
+}
+
+func (h *EntryHandler) GetEntry(ctx context.Context, req *v1.GetEntryRequest) (*v1.GetEntryResponse, error) {
+	if req.EntryId == "" {
+		return nil, status.Error(codes.InvalidArgument, "entry_id required")
+	}
+
+	e, err := h.svc.GetEntry(ctx, req.EntryId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	entryStatus := "pending"
+	if e.Status.Valid {
+		entryStatus = e.Status.String
+	}
+	roastText := ""
+	if e.RoastText.Valid {
+		roastText = e.RoastText.String
+	}
+
+	// Get score for entry
+	score, _ := h.svc.GetEntryScore(ctx, req.EntryId)
+
+	return &v1.GetEntryResponse{
+		EntryId:    e.ID.String(),
+		SessionId:  e.SessionID.String(),
+		Text:       nullableText(e.EntryText),
+		Level:      int32(e.GuiltLevel.Int32),
+		CreatedAt:  timestamppb.New(e.CreatedAt),
+		Status:     entryStatus,
+		RoastText:  roastText,
+		GuiltScore: score,
+	}, nil
 }
 
 func nullableText(v string) string {

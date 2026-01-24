@@ -102,7 +102,7 @@ func (s *EntryService) CreateEntry(ctx context.Context, sessionID string, text s
 			// Store the guilt score if scores repository available
 			if s.scoresRepo != nil {
 				score := int32(output.GuiltScore * 100) // Convert to 0-100 scale
-				_, _ = s.scoresRepo.CreateScore(ctx, sid, score, nil)
+				_, _ = s.scoresRepo.CreateScore(ctx, sid, &e.ID, score, nil)
 			}
 		}
 	}
@@ -124,22 +124,72 @@ func (s *EntryService) ListEntries(ctx context.Context, sessionID string) ([]sql
 	return entries, nil
 }
 
+// GetEntry retrieves a single entry by ID
+func (s *EntryService) GetEntry(ctx context.Context, entryID string) (sqlc.GuiltEntry, error) {
+	eid, err := uuid.Parse(entryID)
+	if err != nil {
+		return sqlc.GuiltEntry{}, errors.New("invalid entry_id")
+	}
+
+	return s.repo.GetEntry(ctx, eid)
+}
+
+// GetEntryScore retrieves the score for a specific entry
+func (s *EntryService) GetEntryScore(ctx context.Context, entryID string) (int32, error) {
+	eid, err := uuid.Parse(entryID)
+	if err != nil {
+		return 0, errors.New("invalid entry_id")
+	}
+
+	if s.scoresRepo == nil {
+		return 0, nil
+	}
+
+	score, err := s.scoresRepo.GetScoreByEntry(ctx, eid)
+	if err != nil {
+		return 0, nil // Return 0 if no score found
+	}
+
+	return score.AggregateScore, nil
+}
+
 func (s *EntryService) ProcessMLJob(ctx context.Context, entryID string) error {
-	e, err := s.repo.GetEntry(ctx, uuid.MustParse(entryID))
+	eid, err := uuid.Parse(entryID)
+	if err != nil {
+		return errors.New("invalid entry_id")
+	}
+
+	e, err := s.repo.GetEntry(ctx, eid)
 	if err != nil {
 		return err
 	}
 
 	var intensity = 3
+	var persona = ml.PersonaRoast
+
 	if s.prefsService != nil {
 		prefs, _ := s.prefsService.GetPreferences(ctx, e.SessionID.String())
 		if prefs.Metadata.Valid {
-			// Parse metadata for intensity if available
+			// Parse metadata for intensity and persona if available
 			var meta map[string]interface{}
 			_ = json.Unmarshal(prefs.Metadata.RawMessage, &meta)
 			if val, ok := meta["humor_intensity"]; ok {
 				if fval, ok := val.(float64); ok {
 					intensity = int(fval)
+				}
+			}
+			if val, ok := meta["persona"]; ok {
+				if sval, ok := val.(string); ok {
+					switch sval {
+					case "roast":
+						persona = ml.PersonaRoast
+					case "coach":
+						persona = ml.PersonaCoach
+					case "chill":
+						persona = ml.PersonaChill
+					default:
+						persona = ml.PersonaNeutral
+					}
 				}
 			}
 		}
@@ -151,14 +201,24 @@ func (s *EntryService) ProcessMLJob(ctx context.Context, entryID string) error {
 			Text:      e.EntryText,
 			UserID:    e.SessionID.String(),
 			Intensity: intensity,
-			Persona:   ml.PersonaRoast,
+			Persona:   persona,
 		})
 		if err != nil {
+			_ = s.repo.UpdateEntryStatus(ctx, e.ID, "failed")
 			return err
 		}
 
+		// Update roast text
 		roastText := sql.NullString{String: out.RoastText, Valid: true}
 		_ = s.repo.UpdateRoast(ctx, e.ID, roastText)
+
+		// Create score with entry_id
+		if s.scoresRepo != nil {
+			score := int32(out.GuiltScore * 100) // Convert to 0-100 scale
+			_, _ = s.scoresRepo.CreateScore(ctx, e.SessionID, &e.ID, score, nil)
+		}
+
+		// Mark as completed
 		_ = s.repo.UpdateEntryStatus(ctx, e.ID, "completed")
 	}
 

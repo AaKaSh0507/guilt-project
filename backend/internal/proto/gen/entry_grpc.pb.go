@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.4
-// source: entry.proto
+// source: internal/proto/entry.proto
 
 package v1
 
@@ -21,14 +21,21 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	EntryService_CreateEntry_FullMethodName = "/guiltmachine.v1.EntryService/CreateEntry"
 	EntryService_ListEntries_FullMethodName = "/guiltmachine.v1.EntryService/ListEntries"
+	EntryService_GetEntry_FullMethodName    = "/guiltmachine.v1.EntryService/GetEntry"
 )
 
 // EntryServiceClient is the client API for EntryService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// EntryService manages guilt entries
 type EntryServiceClient interface {
+	// CreateEntry creates a new guilt entry
 	CreateEntry(ctx context.Context, in *CreateEntryRequest, opts ...grpc.CallOption) (*CreateEntryResponse, error)
+	// ListEntries lists all guilt entries for a session
 	ListEntries(ctx context.Context, in *ListEntriesRequest, opts ...grpc.CallOption) (*ListEntriesResponse, error)
+	// GetEntry retrieves a single entry with score and roast
+	GetEntry(ctx context.Context, in *GetEntryRequest, opts ...grpc.CallOption) (*GetEntryResponse, error)
 }
 
 type entryServiceClient struct {
@@ -59,12 +66,28 @@ func (c *entryServiceClient) ListEntries(ctx context.Context, in *ListEntriesReq
 	return out, nil
 }
 
+func (c *entryServiceClient) GetEntry(ctx context.Context, in *GetEntryRequest, opts ...grpc.CallOption) (*GetEntryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEntryResponse)
+	err := c.cc.Invoke(ctx, EntryService_GetEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EntryServiceServer is the server API for EntryService service.
 // All implementations must embed UnimplementedEntryServiceServer
 // for forward compatibility.
+//
+// EntryService manages guilt entries
 type EntryServiceServer interface {
+	// CreateEntry creates a new guilt entry
 	CreateEntry(context.Context, *CreateEntryRequest) (*CreateEntryResponse, error)
+	// ListEntries lists all guilt entries for a session
 	ListEntries(context.Context, *ListEntriesRequest) (*ListEntriesResponse, error)
+	// GetEntry retrieves a single entry with score and roast
+	GetEntry(context.Context, *GetEntryRequest) (*GetEntryResponse, error)
 	mustEmbedUnimplementedEntryServiceServer()
 }
 
@@ -80,6 +103,9 @@ func (UnimplementedEntryServiceServer) CreateEntry(context.Context, *CreateEntry
 }
 func (UnimplementedEntryServiceServer) ListEntries(context.Context, *ListEntriesRequest) (*ListEntriesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListEntries not implemented")
+}
+func (UnimplementedEntryServiceServer) GetEntry(context.Context, *GetEntryRequest) (*GetEntryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEntry not implemented")
 }
 func (UnimplementedEntryServiceServer) mustEmbedUnimplementedEntryServiceServer() {}
 func (UnimplementedEntryServiceServer) testEmbeddedByValue()                      {}
@@ -138,6 +164,24 @@ func _EntryService_ListEntries_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EntryService_GetEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EntryServiceServer).GetEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EntryService_GetEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EntryServiceServer).GetEntry(ctx, req.(*GetEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EntryService_ServiceDesc is the grpc.ServiceDesc for EntryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,7 +197,11 @@ var EntryService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListEntries",
 			Handler:    _EntryService_ListEntries_Handler,
 		},
+		{
+			MethodName: "GetEntry",
+			Handler:    _EntryService_GetEntry_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "entry.proto",
+	Metadata: "internal/proto/entry.proto",
 }

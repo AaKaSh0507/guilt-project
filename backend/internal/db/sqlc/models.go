@@ -30,6 +30,7 @@ type GuiltScore struct {
 	Meta           pqtype.NullRawMessage
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	EntryID        uuid.NullUUID
 }
 
 type GuiltSession struct {
